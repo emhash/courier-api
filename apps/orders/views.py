@@ -25,19 +25,21 @@ class OrderCreateView(APIView):
         output_serializer = OrderSerializer(order)
         response_data = output_serializer.data.copy()
         
-        # if checkout URL was created
-        if hasattr(serializer, 'checkout_url') and serializer.checkout_url:
-            response_data["checkout_url"] = serializer.checkout_url
-            response_data["message"] = "Order created successfully. Redirect user to checkout_url to complete payment."
-        elif hasattr(order, 'payment'):
-            if order.payment.status == 'SUCCEEDED':
-                response_data["message"] = "Order created and payment completed successfully"
-            else:
-                response_data["message"] = "Order created with payment setup - confirmation may be required"
+        if hasattr(order, 'checkout_url'):
+            response_data.update({
+                "checkout_url": order.checkout_url,
+                "session_id": order.session_id,
+            })
+            message = "Order created successfully. Redirect user to checkout_url to complete payment."
         else:
-            response_data["message"] = "Order created successfully"
+            message = "Order created successfully"
             
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        return Response({
+            "success": True,
+            "statusCode": 201,
+            "message": message,
+            "Data": response_data
+        }, status=status.HTTP_201_CREATED)
 
 
 class OrderListView(APIView):

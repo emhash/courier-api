@@ -1,470 +1,491 @@
-# Courier Management System Backend API
+# 🚚 Courier Management System - Backend API
 
-This is a RESTful backend API for a Courier Management System, built with Django and Django REST Framework. It supports multiple user roles (Admin, Delivery Man, User) and provides functionality for user authentication, order management, and payment processing with Stripe.
+A comprehensive RESTful API for courier and delivery management, built with Django REST Framework. Features role-based access control, integrated Stripe payments, and complete order lifecycle management.
 
-## Features
-- Swagger for API Documentation
-- User registration and authentication using JWT
-- Role-based access control (Admin, Delivery Man, User)
-- Order creation, retrieval, and updates
-- Payment integration with Stripe (Checkout Sessions, Payment Intents, and Webhooks)
-- Admin management of orders and delivery assignments
-- API documentation with Swagger UI
-- Payment success and cancel pages for frontend integration
+## 📄 Project Overview
 
-## Setup Instructions
+This system provides a complete backend solution for courier services with:
 
-To set up and run the API locally, follow these steps:
+- **Multi-role Authentication** (Admin, Delivery Personnel, Customers)
+- **Order Management** with real-time status tracking
+- **Integrated Stripe Payments** with webhook automation
+- **Role-based Permissions** ensuring secure access
+- **Comprehensive API Documentation** with Swagger UI
+- **Payment Success/Cancel Pages** for seamless UX
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/yourusername/courier-management-system.git
-   cd courier-management-system
-   ```
+## 🔗 Live Links
 
-2. **Create and activate a virtual environment:**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+| Resource | URL |
+|----------|-----|
+| **🌐 Live API** | **https://courierapi.pythonanywhere.com** |
+| **📖 API Documentation** | **https://courierapi.pythonanywhere.com/api/docs/** |
+| **📋 Admin Panel** | **https://courierapi.pythonanywhere.com/admin/** |
+| **📂 GitHub Repository** | **https://github.com/emhash/courier-api** |
+| **📮 Postman Collection** | [Download JSON](./Courier_Management_API.postman_collection.json) |
 
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-   *Note:* Ensure you have a `requirements.txt` file with dependencies like `django`, `djangorestframework`, `djangorestframework-simplejwt`, `drf-spectacular`, and `stripe`.
+## 🗄️ Database Schema
 
-4. **Set up environment variables:**
-   Create a `.env` file in the project root with the following:
-   ```env
-   SECRET_KEY=your_django_secret_key
-   DEBUG=True
-   STRIPE_SECRET_KEY=your_stripe_secret_key
-   STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
-   FRONTEND_URL=http://localhost:8000
-   ```
-   - Replace `your_django_secret_key` with a secure key (e.g., generated via Django's `get_random_secret_key()`).
-   - Obtain `your_stripe_secret_key` from your Stripe dashboard (use a test key for development).
-   - Get `your_stripe_webhook_secret` from your Stripe webhook endpoint configuration.
-   - Set `FRONTEND_URL` to your frontend application URL (defaults to backend URL for development).
+![Database ERD](./model_diagram.png)
 
-5. **Run database migrations:**
-   ```bash
-   python manage.py migrate
-   ```
+### Core Models
+- **User**: Authentication with role-based access (admin, delivery_man, user)
+- **Order**: Complete order lifecycle with customer assignment 
+- **Payment**: Stripe integration for secure transactions
 
-6. **Create a superuser (for admin access):**
-   ```bash
-   python manage.py createsuperuser
-   ```
+![UML Class Diagram](./courier_project_uml.png)
 
-7. **Run the development server:**
-   ```bash
-   python manage.py runserver
-   ```
-   The API will be available at `http://localhost:8000/`.
+## 🔐 Login Credentials
+| Role | Username | Password | Email |
+|------|----------|----------|-------|
+| **Super Admin** | `admin` | `admin` | admin@gmail.com |
+| **Admin** | `ashiq` | `111111qqqqqq` | md.e.h.ashiq@gmail.com |
+| **Delivery Man** | `rafiq` | `111111qqqqqq` | rafiq@gmail.com |
+| **Customer** | `shafiq` | `111111qqqqqq` | shafiq@gmail.com |
 
-8. **Access API Documentation:**
-   - Swagger UI: `http://localhost:8000/api/docs/`
-   - ReDoc: `http://localhost:8000/api/redoc/`
-   - Homepage automatically redirects to Swagger UI
+## 🚀 Quick Start
 
-## Authentication
+### 1. Local Development Setup
 
-The API uses JSON Web Tokens (JWT) for authentication. Users must register and log in to obtain an access token, which is required for authenticated endpoints.
+```bash
+# Clone repository
+git clone https://github.com/emhash/courier-api.git
+cd courier-api
 
-### Register a New User
-- **Endpoint:** `POST /api/v1/auth/register/`
-- **Description:** Register a new user with a specified role.
-- **Request:**
-  ```bash
-  curl --location 'http://localhost:8000/api/v1/auth/register/' \
-  --form 'email="md.e.h.ashiq@gmail.com"' \
-  --form 'password="111111qqqqqq"' \
-  --form 'username="ashiq"' \
-  --form 'confirm_password="111111qqqqqq"' \
-  --form 'role="admin"'
-  ```
-- **Response:**
-  ```json
-  {
-      "success": true,
-      "statusCode": 201,
-      "message": "User Registration successful",
-      "data": {
-          "username": "ashiq",
-          "email": "md.e.h.ashiq@gmail.com",
-          "role": "admin",
-          "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-      }
-  }
-  ```
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-### Log In
-- **Endpoint:** `POST /api/v1/auth/login/`
-- **Description:** Log in to obtain access and refresh tokens.
-- **Request:**
-  ```bash
-  curl --location 'http://localhost:8000/api/v1/auth/login/' \
-  --form 'username_or_email="md.e.h.ashiq@gmail.com"' \
-  --form 'password="111111qqqqqq"'
-  ```
-- **Response:**
-  ```json
-  {
-      "success": true,
-      "statusCode": 200,
-      "message": "Login successful",
-      "data": {
-          "username": "ashiq",
-          "email": "md.e.h.ashiq@gmail.com",
-          "role": "admin",
-          "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-          "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-      }
-  }
-  ```
+# Install dependencies
+pip install -r requirements.txt
 
-### Get Profile
-- **Endpoint:** `GET /api/v1/auth/profile/`
-- **Description:** Retrieve the authenticated user's profile (requires token).
-- **Request:**
-  ```bash
-  curl --location --request GET 'http://localhost:8000/api/v1/auth/profile/' \
-  --header 'Authorization: Bearer <access_token>'
-  ```
-- **Response:**
-  ```json
-  {
-      "success": true,
-      "statusCode": 200,
-      "message": "User profile loaded successfully",
-      "data": {
-          "id": 5,
-          "username": "ashiq",
-          "first_name": "",
-          "last_name": "",
-          "email": "md.e.h.ashiq@gmail.com",
-          "role": "admin"
-      }
-  }
-  ```
+# Environment setup (.env file)
+SECRET_KEY=
+DEBUG=True
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+FRONTEND_URL=
+
+# Database setup
+python manage.py migrate
+python manage.py createsuperuser
+
+# Run development server
+python manage.py runserver
+```
+
+### 2. Access Points
+- **API Documentation**: http://localhost:8000/api/docs/
+- **Admin Panel**: http://localhost:8000/admin/
+- **Homepage**: Redirects to API documentation
+
+---
+
+## 📚 API Documentation
+
+### Base URL
+- **Live**: `https://courierapi.pythonanywhere.com`
+- **Local**: `http://localhost:8000`
+
+All endpoints return standardized responses:
+
+**Success Response Format:**
+```json
+{
+    "success": true,
+    "statusCode": 201,
+    "message": "Operation completed successfully",
+    "Data": { /* response data */ }
+}
+```
+
+**Error Response Format:**
+```json
+{
+    "success": false,
+    "message": "Validation error occurred.",
+    "errorDetails": {
+        "field": "email",
+        "message": "Invalid email format."
+    }
+}
+```
+
+---
+
+## 🔑 Authentication Endpoints
+
+### Register New User
+**`POST /api/v1/auth/register/`**
+
+```bash
+curl --location 'https://courierapi.pythonanywhere.com/api/v1/auth/register/' \
+--form 'email="newuser@gmail.com"' \
+--form 'password="111111qqqqqq"' \
+--form 'username="newuser"' \
+--form 'confirm_password="111111qqqqqq"' \
+--form 'role="user"'
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "statusCode": 201,
+    "message": "User Registration successful",
+    "Data": {
+        "username": "newuser",
+        "email": "newuser@gmail.com",
+        "role": "user",
+        "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+}
+```
+
+**Available Roles:** `admin`, `delivery_man`, `user`
+
+### User Login
+**`POST /api/v1/auth/login/`**
+
+```bash
+curl --location 'https://courierapi.pythonanywhere.com/api/v1/auth/login/' \
+--form 'username_or_email="shafiq@gmail.com"' \
+--form 'password="111111qqqqqq"'
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "statusCode": 200,
+    "message": "Login successful",
+    "Data": {
+        "username": "shafiq",
+        "email": "shafiq@gmail.com",
+        "role": "user",
+        "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+}
+```
+
+### Get User Profile
+**`GET /api/v1/auth/profile/`** *(Requires Authorization)*
+
+```bash
+curl --location 'https://courierapi.pythonanywhere.com/api/v1/auth/profile/' \
+--header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
+```
 
 ### Update Profile
-- **Endpoint:** `PUT /api/v1/auth/profile/`
-- **Description:** Update the authenticated user's profile (requires token).
-- **Request:**
-  ```bash
-  curl --location --request PUT 'http://localhost:8000/api/v1/auth/profile/' \
-  --header 'Authorization: Bearer <access_token>' \
-  --form 'first_name="E. H."' \
-  --form 'last_name="Ashiq"'
-  ```
-- **Response:**
-  ```json
-  {
-      "success": true,
-      "statusCode": 200,
-      "message": "User profile updated successfully",
-      "data": {
-          "id": 5,
-          "username": "ashiq",
-          "first_name": "E. H.",
-          "last_name": "Ashiq",
-          "email": "md.e.h.ashiq@gmail.com",
-          "role": "admin"
-      }
-  }
-  ```
+**`PUT /api/v1/auth/profile/`** *(Requires Authorization)*
 
-## API Endpoints
+```bash
+curl --location --request PUT 'https://courierapi.pythonanywhere.com/api/v1/auth/profile/' \
+--header 'Authorization: Bearer YOUR_ACCESS_TOKEN' \
+--form 'first_name="John"' \
+--form 'last_name="Doe"'
+```
 
-### Orders
+---
 
-#### Create Order
-- **Endpoint:** `POST /api/v1/orders/`
-- **Description:** Create a new order (users only, requires token).
-- **Request:**
-  ```bash
-  curl --location 'http://localhost:8000/api/v1/orders/' \
-  --header 'Content-Type: application/json' \
-  --header 'Authorization: Bearer <access_token>' \
-  --data '{
-      "description": "Pickup documents from Gulshan office and deliver to Dhanmondi residence",
-      "address": "House 45, Road 12A, Dhanmondi, Dhaka-1209",
-      "cost": "250.00"
-  }'
-  ```
-- **Response:**
-  ```json
-  {
-      "success": true,
-      "statusCode": 201,
-      "message": "Order created successfully",
-      "data": {
-          "id": 1,
-          "customer": "nasir_ahmed",
-          "delivery_man": null,
-          "description": "Pickup documents from Gulshan office and deliver to Dhanmondi residence",
-          "address": "House 45, Road 12A, Dhanmondi, Dhaka-1209",
-          "cost": "250.00",
-          "status": "PENDING",
-          "created_at": "2025-07-08T17:46:17.043515Z",
-          "updated_at": "2025-07-08T17:46:17.043515Z"
-      }
-  }
-  ```
+## 📦 Order Management Endpoints
 
-#### List Orders
-- **Endpoint:** `GET /api/v1/orders/`
-- **Description:** Retrieve a list of orders (filtered by role, requires token).
-- **Request:**
-  ```bash
-  curl --location 'http://localhost:8000/api/v1/orders/' \
-  --header 'Authorization: Bearer <access_token>'
-  ```
-- **Response:**
-  ```json
-  {
-      "success": true,
-      "statusCode": 200,
-      "message": "Orders retrieved successfully",
-      "data": {
-          "count": 1,
-          "next": null,
-          "previous": null,
-          "results": [
-              {
-                  "id": 1,
-                  "customer": "nasir_ahmed",
-                  "delivery_man": null,
-                  "description": "Pickup documents from Gulshan office and deliver to Dhanmondi residence",
-                  "address": "House 45, Road 12A, Dhanmondi, Dhaka-1209",
-                  "cost": "250.00",
-                  "status": "PENDING",
-                  "created_at": "2025-07-08T17:46:17.043515Z",
-                  "updated_at": "2025-07-08T17:46:17.043515Z"
-              }
-          ]
-      }
-  }
-  ```
+### Create Order (Without Payment)
+**`POST /api/v1/orders/create/`** *(Requires Authorization - User Role)*
 
-#### Get Order Details
-- **Endpoint:** `GET /api/v1/orders/{id}/`
-- **Description:** Retrieve details of a specific order (role-based access, requires token).
-- **Request:**
-  ```bash
-  curl --location 'http://localhost:8000/api/v1/orders/1/' \
-  --header 'Authorization: Bearer <access_token>'
-  ```
-- **Response:**
-  ```json
-  {
-      "success": true,
-      "statusCode": 200,
-      "message": "Order retrieved successfully",
-      "data": {
-          "id": 1,
-          "customer": "nasir_ahmed",
-          "delivery_man": null,
-          "description": "Pickup documents from Gulshan office and deliver to Dhanmondi residence",
-          "address": "House 45, Road 12A, Dhanmondi, Dhaka-1209",
-          "cost": "250.00",
-          "status": "PENDING",
-          "created_at": "2025-07-08T17:46:17.043515Z",
-          "updated_at": "2025-07-08T17:46:17.043515Z"
-      }
-  }
-  ```
+```bash
+curl --location 'https://courierapi.pythonanywhere.com/api/v1/orders/create/' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer YOUR_ACCESS_TOKEN' \
+--data '{
+    "description": "Pickup documents from Gulshan office and deliver to Dhanmondi residence",
+    "address": "House 45, Road 12A, Dhanmondi, Dhaka-1209",
+    "cost": "250.00"
+}'
+```
 
-#### Update Order (Admin Only)
-- **Endpoint:** `PATCH /api/v1/orders/{id}/update/`
-- **Description:** Update an order, e.g., assign a delivery man (admins only, requires token).
-- **Request:**
-  ```bash
-  curl --location --request PATCH 'http://localhost:8000/api/v1/orders/1/update/' \
-  --header 'Content-Type: application/json' \
-  --header 'Authorization: Bearer <access_token>' \
-  --data '{
-      "delivery_man": "rafiq_delivery",
-      "status": "PENDING",
-      "description": "Get the delivery fast",
-      "address": "Dhaka"
-  }'
-  ```
-- **Response:**
-  ```json
-  {
-      "success": true,
-      "statusCode": 200,
-      "message": "Order updated successfully",
-      "data": {
-          "id": 1,
-          "customer": "nasir_ahmed",
-          "delivery_man": "rafiq_delivery",
-          "description": "Get the delivery fast",
-          "address": "Dhaka",
-          "cost": "250.00",
-          "status": "PENDING",
-          "created_at": "2025-07-08T17:46:17.043515Z",
-          "updated_at": "2025-07-08T18:03:09.510283Z"
-      }
-  }
-  ```
+**Response:**
+```json
+{
+    "success": true,
+    "statusCode": 201,
+    "message": "Order created successfully",
+    "Data": {
+        "id": 4,
+        "customer": "shafiq",
+        "delivery_man": null,
+        "payment_status": null,
+        "has_payment": false,
+        "description": "Pickup documents from Gulshan office and deliver to Dhanmondi residence",
+        "address": "House 45, Road 12A, Dhanmondi, Dhaka-1209",
+        "cost": "250.00",
+        "status": "PENDING",
+        "created_at": "2025-07-09T19:08:53.403473Z",
+        "updated_at": "2025-07-09T19:08:53.403517Z"
+    }
+}
+```
 
-### Payments
+###  Create Order WITH Payment
+**`POST /api/v1/orders/create/`** *(Single API Call)*
 
-**SIMPLIFIED PAYMENT FLOW:**
-1. User creates order (no payment)
-2. User hits checkout API to get Stripe payment URL
-3. User pays on Stripe → webhook updates order status
-4. Done!
+```bash
+curl --location 'https://courierapi.pythonanywhere.com/api/v1/orders/create/' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer YOUR_ACCESS_TOKEN' \
+--data '{
+    "description": "Pickup documents from office",
+    "address": "House 45, Road 12A, Dhanmondi",
+    "cost": "50.00",
+    "create_payment": true
+}'
+```
 
-#### Create Stripe Checkout Session (ONLY Payment Method)
-- **Endpoint:** `POST /api/v1/payments/checkout/`
-- **Description:** Create a Stripe Checkout Session for order payment (users only, requires token).
-- **Request:**
-  ```bash
-  curl --location 'http://localhost:8000/api/v1/payments/checkout/' \
-  --header 'Content-Type: application/json' \
-  --header 'Authorization: Bearer <access_token>' \
-  --data '{
-      "order_id": 1
-  }'
-  ```
-- **Response:**
-  ```json
-  {
-      "message": "Checkout session created successfully. Redirect user to checkout_url",
-      "checkout_url": "https://checkout.stripe.com/pay/cs_test_...",
-      "session_id": "cs_test_...",
-      "order_id": 1,
-      "amount": "250.00"
-  }
-  ```
+**Response:**
+```json
+{
+    "success": true,
+    "statusCode": 201,
+    "message": "Order created successfully. Redirect user to checkout_url to complete payment.",
+    "Data": {
+        "id": 5,
+        "customer": "shafiq",
+        "delivery_man": null,
+        "payment_status": "PENDING",
+        "has_payment": true,
+        "description": "Pickup documents from office",
+        "address": "House 45, Road 12A, Dhanmondi",
+        "cost": "50.00",
+        "status": "PENDING",
+        "created_at": "2025-07-09T19:19:53.369943Z",
+        "updated_at": "2025-07-09T19:19:53.370005Z",
+        "checkout_url": "https://checkout.stripe.com/c/pay/cs_test_...",
+        "session_id": "cs_test_..."
+    }
+}
+```
 
-#### Stripe Webhook Endpoint
-- **Endpoint:** `POST /api/v1/payments/webhook/`
-- **Description:** Handle Stripe webhook events (no authentication required, secured by webhook signature).
-- **Note:** This endpoint is automatically called by Stripe to notify about payment status changes.
+**Key Features:**
+- ✅ Single API call creates order + payment
+- ✅ Returns Stripe checkout URL immediately  
+- ✅ Automatic webhook handling for payment status
+- ✅ Optional custom success/cancel URLs
 
-## Payment Success and Cancel Pages
+### List Orders
+**`GET /api/v1/orders/`** *(Role-based filtering)*
 
-The system includes built-in HTML pages for handling payment success and cancellation:
+```bash
+curl --location 'https://courierapi.pythonanywhere.com/api/v1/orders/' \
+--header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
+```
 
-### Payment Success Page
-- **URL:** `http://localhost:8000/payment/success/`
-- **Features:**
-  - Displays payment confirmation
-  - Shows order details via JavaScript API calls
-  - Handles session ID from Stripe redirect
-  - Responsive design with loading states
-  - Links to view orders and return home
+**Access Control:**
+- **Admin**: See all orders
+- **Delivery Man**: See assigned orders only
+- **User**: See own orders only
 
-### Payment Cancel Page
-- **URL:** `http://localhost:8000/payment/cancel/`
-- **Features:**
-  - Shows payment cancellation message
-  - Displays order summary
-  - Provides retry payment functionality
-  - Links to view orders and return home
+### Get Order Details
+**`GET /api/v1/orders/{id}/`**
 
-These pages are designed to work with both backend and frontend teams, using JavaScript to make API calls for dynamic content loading.
+```bash
+curl --location 'https://courierapi.pythonanywhere.com/api/v1/orders/4/' \
+--header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
+```
 
-## Roles and Permissions
+### Update Order (Admin)
+**`PATCH /api/v1/orders/{id}/update/`** *(Admin Only)*
 
-- **Admin:** Full access to manage users, orders, and assign delivery men.
-- **Delivery Man:** Can view and update the status of their assigned orders (not fully detailed in provided CURLs; assumed to use standard endpoints with permission checks).
-- **User:** Can register, log in, create orders, view their own orders, and process payments.
+```bash
+curl --location --request PATCH 'https://courierapi.pythonanywhere.com/api/v1/orders/4/update/' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer ADMIN_ACCESS_TOKEN' \
+--data '{
+    "delivery_man": "rafiq",
+    "status": "PENDING",
+    "description": "Get the delivery fast",
+    "address": "Dhaka"
+}'
+```
 
-## Payment Integration
+**Response:**
+```json
+{
+    "success": true,
+    "statusCode": 200,
+    "message": "Order updated successfully",
+    "Data": {
+        "id": 4,
+        "customer": "shafiq",
+        "delivery_man": "rafiq",
+        "payment_status": "PENDING",
+        "has_payment": true,
+        "description": "Get the delivery fast",
+        "address": "Dhaka",
+        "cost": "250.00",
+        "status": "PENDING",
+        "created_at": "2025-07-09T19:08:53.403473Z",
+        "updated_at": "2025-07-09T19:27:46.085245Z"
+    }
+}
+```
 
-The API integrates with Stripe for payment processing using a simple checkout flow:
+### Update Order Status (Delivery Man)
+**`PATCH /api/v1/orders/{id}/update/`** *(Delivery Man - Status Only)*
 
-### Simple Payment Flow
-1. **User creates order** - No payment required during creation
-2. **User calls checkout API** - Gets Stripe hosted checkout URL  
-3. **User pays on Stripe** - Secure payment processing
-4. **Webhook updates status** - Payment completion handled automatically
+```bash
+curl --location --request PATCH 'https://courierapi.pythonanywhere.com/api/v1/orders/5/update/' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer DELIVERY_MAN_TOKEN' \
+--data '{
+    "status": "DELIVERED"
+}'
+```
 
-### Stripe Checkout (ONLY Payment Method)
-- **Use Case:** Hosted payment page with built-in security and compliance
-- **Implementation:** Create checkout session via `/api/v1/payments/checkout/`
-- **Redirect URLs:** Configurable success and cancel URLs (defaults to FRONTEND_URL)
-- **Features:** Automatic webhook handling, PCI compliance, mobile responsive
+**Response:**
+```json
+{
+    "success": true,
+    "statusCode": 200,
+    "message": "Order status updated successfully",
+    "Data": {
+        "id": 5,
+        "customer": "shafiq",
+        "delivery_man": "rafiq",
+        "payment_status": "SUCCEEDED",
+        "has_payment": true,
+        "description": "Pickup documents from office",
+        "address": "House 45, Road 12A, Dhanmondi",
+        "cost": "50.00",
+        "status": "DELIVERED",
+        "created_at": "2025-07-09T19:19:53.369943Z",
+        "updated_at": "2025-07-09T19:31:57.707559Z"
+    }
+}
+```
 
-### Environment Variables
-Ensure the following are set in your `.env` file:
-- `STRIPE_SECRET_KEY`: Your Stripe secret key (use test keys for development)
-- `STRIPE_WEBHOOK_SECRET`: Webhook endpoint secret for signature verification
-- `FRONTEND_URL`: Base URL for success/cancel redirects (defaults to http://localhost:8000)
+---
 
-### Test Payment Methods
-Use Stripe's test payment methods for development:
-- **Visa:** Card number `4242424242424242`
-- **Mastercard:** Card number `5555555555554444`
-- **Declined:** Card number `4000000000000002`
+## 💳 Payment Integration
 
-## Database Schema
+### Payment for Existing Order
+**`POST /api/v1/payments/checkout/`** *(Create Stripe Checkout)*
 
-The Entity-Relationship Diagram (ERD) is available in the repository as `erd.png`. It includes:
-- **User:** id, username, email, role, etc.
-- **Order:** id, customer (FK to User), delivery_man (FK to User, nullable), description, address, cost, status, payment_status, etc.
-- **Payment:** id, order (FK to Order), amount, stripe_payment_intent_id, status, etc.
+```bash
+curl --location 'https://courierapi.pythonanywhere.com/api/v1/payments/checkout/' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer YOUR_ACCESS_TOKEN' \
+--data '{
+    "order_id": 4
+}'
+```
 
-![ERD](erd.png)
+**Response:**
+```json
+{
+    "success": true,
+    "statusCode": 201,
+    "message": "Checkout session created successfully. Redirect user to checkout_url",
+    "Data": {
+        "checkout_url": "https://checkout.stripe.com/c/pay/cs_test_...",
+        "session_id": "cs_test_...",
+        "order_id": 4,
+        "amount": 250.0
+    }
+}
+```
 
-## API Documentation
+### Retry Failed Payment
+**`POST /api/v1/payments/retry/{payment_id}/`**
 
-The API includes comprehensive documentation accessible at:
-- **Swagger UI:** `http://localhost:8000/api/docs/` (Interactive documentation)
-- **ReDoc:** `http://localhost:8000/api/redoc/` (Alternative documentation view)
-- **OpenAPI Schema:** `http://localhost:8000/api/schema/` (Raw OpenAPI 3.0 schema)
+```bash
+curl --location 'https://courierapi.pythonanywhere.com/api/v1/payments/retry/1/' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
+```
 
-The documentation includes:
-- Authentication examples with JWT Bearer tokens
-- Request/response schemas for all endpoints
-- Interactive testing interface
-- Role-based access documentation
-- Payment flow examples
+### Stripe Webhook (Automatic)
+**`POST /api/v1/payments/webhook/`** *(No Auth - Webhook Signature)*
 
-## Sample Credentials
+This endpoint is automatically called by Stripe to update payment statuses. It handles:
+- `checkout.session.completed` → Payment Success
+- `checkout.session.expired` → Session Timeout  
+- `payment_intent.succeeded` → Backup Confirmation
+- `payment_intent.payment_failed` → Payment Failure
 
-For testing, register users with the following details via the `/api/v1/auth/register/` endpoint:
-| Role         | Username       | Password       | Email                  |
-|--------------|----------------|----------------|------------------------|
-| Admin        | ashiq          | 111111qqqqqq   | md.e.h.ashiq@gmail.com |
-| User         | nasir_ahmed    | (set via register) | (set via register)  |
-| Delivery Man | rafiq_delivery | (set via register) | (set via register)  |
+---
 
-## Postman Collection
+## 🎨 Payment UI Pages
 
-A Postman collection with all endpoints and example requests is available in the repository as `Courier_Management_System.postman_collection.json`. Import it into Postman to test the API.
+### Success Page
+**URL**: `https://courierapi.pythonanywhere.com/payment/success/`
+- ✅ Payment confirmation display
+- ✅ Session ID tracking
+- ✅ Modern responsive design
+- ✅ Automatic status updates
 
-## Error Responses
+### Cancel Page  
+**URL**: `https://courierapi.pythonanywhere.com/payment/cancel/`
+- ❌ Payment cancellation handling
+- 🔄 Retry payment functionality
+- 📝 Order tracking via URL parameters
+- 🎯 User-friendly error messaging
 
-- **Unauthorized:**
-  ```json
-  {
-      "success": false,
-      "message": "Authentication credentials were not provided."
-  }
-  ```
-- **Not Found:**
-  ```json
-  {
-      "success": false,
-      "message": "Order not found."
-  }
-  ```
-- **Validation Error:**
-  ```json
-  {
-      "success": false,
-      "message": "Invalid data.",
-      "errorDetails": {
-          "cost": ["A valid number is required."]
-      }
-  }
-  ```
+---
+
+## 🔐 Role-Based Access Control
+
+### Admin Permissions
+- ✅ Manage all orders (create, read, update, delete)
+- ✅ Assign delivery personnel to orders
+- ✅ View all payments and transactions
+- ✅ User management capabilities
+
+### Delivery Man Permissions  
+- ✅ View assigned orders only
+- ✅ Update order status (PENDING → IN_PROGRESS → DELIVERED)
+- ❌ Cannot modify order details or assign other delivery men
+- ❌ Cannot access other users' orders
+
+### User (Customer) Permissions
+- ✅ Create new orders
+- ✅ View own orders only
+- ✅ Process payments for orders
+- ✅ Retry failed payments
+- ❌ Cannot access other users' data
+
+---
+
+
+## 📂 Project Structure
+
+```
+courier-api/
+├── apps/
+│   ├── users/          # Authentication & user management
+│   ├── orders/         # Order CRUD operations
+│   └── payments/       # Stripe integration
+├── core/
+│   ├── settings/       # Django configuration  
+│   └── urls.py         # URL routing
+├── templates/
+│   └── payment/        # Success/cancel pages
+├── static/             # Static files
+├── requirements.txt    # Dependencies
+└── README.md          # This file
+```
+
+---
+
+## 🚀 Deployment
+
+The API is deployed on **PythonAnywhere** with:
+- ✅ SSL Certificate (HTTPS)
+- ✅ Database persistence
+- ✅ Environment variable security
+- ✅ Stripe webhook endpoints
+- ✅ Static file serving
+
+**Live API**: https://courierapi.pythonanywhere.com
+
+---
+
