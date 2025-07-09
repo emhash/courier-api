@@ -414,6 +414,8 @@ This endpoint is automatically called by Stripe to update payment statuses. It h
 
 ---
 
+![Payment Success](./payment-success.jpg)
+
 ## 🎨 Payment UI Pages
 
 ### Success Page
