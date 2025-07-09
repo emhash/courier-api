@@ -195,8 +195,8 @@
         <div id="error-message" class="error hidden"></div>
 
         <div style="margin-top: 30px;">
-            <a href="/api/v1/orders/" class="btn">View My Orders</a>
-            <a href="/" class="btn btn-secondary">Back to Home</a>
+            <a href="/api/docs/" class="btn">View API Docs</a>
+            <a href="/admin/" class="btn btn-secondary">Admin Panel</a>
         </div>
     </div>
 
@@ -205,100 +205,48 @@
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
 
-        // API configuration
-        const API_BASE_URL = window.location.origin + '/api/v1';
-
-        // Get JWT token from localStorage (you may need to adjust this based on your auth implementation)
-        function getAuthToken() {
-            // This is a placehoder - adjust based on how you store JWT tokens
-            return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
-        }
-
-        // API call helper
-        async function apiCall(endpoint, options = {}) {
-            const token = getAuthToken();
-            const defaultHeaders = {
-                'Content-Type': 'application/json',
-            };
-
-            if (token) {
-                defaultHeaders['Authorization'] = `Bearer ${token}`;
-            }
-
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                headers: { ...defaultHeaders, ...options.headers },
-                ...options
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            return response.json();
-        }
-
-        async function findOrderBySession(sessionId) {
-            try {
-                const payments = await apiCall('/payments/');
-                const payment = payments.payments?.find(p => 
-                    p.stripe_payment_intent_id === sessionId || 
-                    p.stripe_payment_intent_id?.includes(sessionId)
-                );
-                
-                if (payment) {
-                    return await apiCall(`/orders/${payment.order_id}/`);
-                }
-                throw new Error('Order not found for this session');
-            } catch (error) {
-                console.error('Error finding order:', error);
-                throw error;
-            }
-        }
-
-        // Display order details
-        function displayOrderDetails(orderData) {
-            document.getElementById('order-id').textContent = orderData.id;
-            document.getElementById('order-description').textContent = orderData.description;
-            document.getElementById('order-address').textContent = orderData.address;
-            document.getElementById('order-status').textContent = orderData.status;
-            document.getElementById('order-amount').textContent = `$${orderData.cost}`;
-
+        // Show success message immediately since we're on the success page
+        function showSuccessWithSessionInfo() {
             document.getElementById('loading').classList.add('hidden');
-            document.getElementById('order-details').classList.remove('hidden');
-        }
-
-        // Display error message
-        function displayError(message) {
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('error-message').textContent = message;
-            document.getElementById('error-message').classList.remove('hidden');
+            
+            // Show basic success info
+            const orderDetails = document.getElementById('order-details');
+            orderDetails.innerHTML = `
+                <h3>Payment Confirmed!</h3>
+                <div class="detail-row">
+                    <span>Session ID:</span>
+                    <span>${sessionId || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Payment Status:</span>
+                    <span style="color: #28a745; font-weight: bold;">SUCCEEDED</span>
+                </div>
+                <div class="detail-row">
+                    <span>Transaction:</span>
+                    <span>Completed via Stripe</span>
+                </div>
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                    Your payment has been processed successfully. You will receive an email confirmation shortly.
+                </p>
+            `;
+            orderDetails.classList.remove('hidden');
         }
 
         // Main function to handle page load
-        async function handlePageLoad() {
+        function handlePageLoad() {
             if (!sessionId) {
-                displayError('No session ID found. Please check your payment confirmation email.');
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error-message').textContent = 'No session ID found in URL.';
+                document.getElementById('error-message').classList.remove('hidden');
                 return;
             }
 
-            try {
-                const orderData = await findOrderBySession(sessionId);
-                displayOrderDetails(orderData);
-            } catch (error) {
-                console.error('Error loading order details:', error);
-                displayError('Unable to load order details. Please contact support if this issue persists.');
-            }
+            // Show success immediately since Stripe redirected here
+            showSuccessWithSessionInfo();
         }
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', handlePageLoad);
-
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'PAYMENT_SUCCESS') {
-                const orderData = event.data.order;
-                displayOrderDetails(orderData);
-            }
-        });
     </script>
 </body>
 </html> 
