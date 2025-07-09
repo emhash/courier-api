@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Courier Service</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: scaleIn 0.6s ease-out;
+        }
+
+        .success-icon::after {
+            content: '✓';
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .message {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .order-details {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .order-details h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon"></div>
+        <h1>Payment Successful!</h1>
+        <p class="message">Thank you for your payment. Your courier order has been processed successfully.</p>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <span>Retrieving order details...</span>
+        </div>
+
+        <div id="order-details" class="order-details hidden">
+            <h3>Order Details</h3>
+            <div class="detail-row">
+                <span>Order ID:</span>
+                <span id="order-id">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Description:</span>
+                <span id="order-description">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Address:</span>
+                <span id="order-address">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Status:</span>
+                <span id="order-status">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Amount Paid:</span>
+                <span id="order-amount">-</span>
+            </div>
+        </div>
+
+        <div id="error-message" class="error hidden"></div>
+
+        <div style="margin-top: 30px;">
+            <a href="/api/v1/orders/" class="btn">View My Orders</a>
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Get session ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+
+        // API configuration
+        const API_BASE_URL = window.location.origin + '/api/v1';
+
+        // Get JWT token from localStorage (you may need to adjust this based on your auth implementation)
+        function getAuthToken() {
+            // This is a placehoder - adjust based on how you store JWT tokens
+            return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+        }
+
+        // API call helper
+        async function apiCall(endpoint, options = {}) {
+            const token = getAuthToken();
+            const defaultHeaders = {
+                'Content-Type': 'application/json',
+            };
+
+            if (token) {
+                defaultHeaders['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                headers: { ...defaultHeaders, ...options.headers },
+                ...options
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            return response.json();
+        }
+
+        async function findOrderBySession(sessionId) {
+            try {
+                const payments = await apiCall('/payments/');
+                const payment = payments.payments?.find(p => 
+                    p.stripe_payment_intent_id === sessionId || 
+                    p.stripe_payment_intent_id?.includes(sessionId)
+                );
+                
+                if (payment) {
+                    return await apiCall(`/orders/${payment.order_id}/`);
+                }
+                throw new Error('Order not found for this session');
+            } catch (error) {
+                console.error('Error finding order:', error);
+                throw error;
+            }
+        }
+
+        // Display order details
+        function displayOrderDetails(orderData) {
+            document.getElementById('order-id').textContent = orderData.id;
+            document.getElementById('order-description').textContent = orderData.description;
+            document.getElementById('order-address').textContent = orderData.address;
+            document.getElementById('order-status').textContent = orderData.status;
+            document.getElementById('order-amount').textContent = `$${orderData.cost}`;
+
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('order-details').classList.remove('hidden');
+        }
+
+        // Display error message
+        function displayError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-message').classList.remove('hidden');
+        }
+
+        // Main function to handle page load
+        async function handlePageLoad() {
+            if (!sessionId) {
+                displayError('No session ID found. Please check your payment confirmation email.');
+                return;
+            }
+
+            try {
+                const orderData = await findOrderBySession(sessionId);
+                displayOrderDetails(orderData);
+            } catch (error) {
+                console.error('Error loading order details:', error);
+                displayError('Unable to load order details. Please contact support if this issue persists.');
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', handlePageLoad);
+
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'PAYMENT_SUCCESS') {
+                const orderData = event.data.order;
+                displayOrderDetails(orderData);
+            }
+        });
+    </script>
+</body>
+</html> 
