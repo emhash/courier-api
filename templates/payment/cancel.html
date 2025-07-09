@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Cancelled - Courier Service</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff7e7e 0%, #ff6b6b 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .cancel-icon {
+            width: 80px;
+            height: 80px;
+            background: #dc3545;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: scaleIn 0.6s ease-out;
+        }
+
+        .cancel-icon::after {
+            content: '✕';
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .message {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #856404;
+        }
+
+        .info-box h3 {
+            margin-bottom: 15px;
+            color: #856404;
+        }
+
+        .info-box ul {
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        .info-box li {
+            margin-bottom: 8px;
+        }
+
+        .order-summary {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .order-summary h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            color: #dc3545;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #ff6b6b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #ff5252;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="cancel-icon"></div>
+        <h1>Payment Cancelled</h1>
+        <p class="message">Your payment has been cancelled. No charges were made to your account.</p>
+        
+        <div class="info-box">
+            <h3>What happened?</h3>
+            <ul>
+                <li>You cancelled the payment process</li>
+                <li>No money has been charged</li>
+                <li>Your order is still pending payment</li>
+                <li>You can retry the payment anytime</li>
+            </ul>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <span>Loading order details...</span>
+        </div>
+
+        <div id="order-summary" class="order-summary hidden">
+            <h3>Order Summary</h3>
+            <div class="detail-row">
+                <span>Order ID:</span>
+                <span id="order-id">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Description:</span>
+                <span id="order-description">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Address:</span>
+                <span id="order-address">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Status:</span>
+                <span id="order-status">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Amount:</span>
+                <span id="order-amount">-</span>
+            </div>
+        </div>
+
+        <div id="error-message" class="error hidden"></div>
+
+        <div style="margin-top: 30px;">
+            <button id="retry-payment" class="btn btn-success hidden">Retry Payment</button>
+            <a href="/api/v1/orders/" class="btn">View My Orders</a>
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // API configuration
+        const API_BASE_URL = window.location.origin + '/api/v1';
+
+        // Get JWT token from localStorage (you may need to adjust this based on your auth implementation)
+        function getAuthToken() {
+            // This is a placeholder - adjust based on how you store JWT tokens
+            return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+        }
+
+        // API call helper
+        async function apiCall(endpoint, options = {}) {
+            const token = getAuthToken();
+            const defaultHeaders = {
+                'Content-Type': 'application/json',
+            };
+
+            if (token) {
+                defaultHeaders['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                headers: { ...defaultHeaders, ...options.headers },
+                ...options
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            return response.json();
+        }
+
+        // Get order from URL parameters or localStorage
+        function getOrderInfo() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('order_id') || localStorage.getItem('pending_order_id');
+            return { orderId };
+        }
+
+        // Load order details
+        async function loadOrderDetails(orderId) {
+            try {
+                const orderData = await apiCall(`/orders/${orderId}/`);
+                return orderData;
+            } catch (error) {
+                console.error('Error loading order:', error);
+                throw error;
+            }
+        }
+
+        // Display order details
+        function displayOrderDetails(orderData) {
+            document.getElementById('order-id').textContent = orderData.id;
+            document.getElementById('order-description').textContent = orderData.description;
+            document.getElementById('order-address').textContent = orderData.address;
+            document.getElementById('order-status').textContent = orderData.status;
+            document.getElementById('order-amount').textContent = `$${orderData.cost}`;
+
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('order-summary').classList.remove('hidden');
+            document.getElementById('retry-payment').classList.remove('hidden');
+
+            // Store order ID for retry
+            localStorage.setItem('retry_order_id', orderData.id);
+        }
+
+        // Display error message
+        function displayError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-message').classList.remove('hidden');
+        }
+
+        // Retry payment function
+        async function retryPayment() {
+            const orderId = localStorage.getItem('retry_order_id');
+            if (!orderId) {
+                displayError('Order ID not found. Please try again from your orders page.');
+                return;
+            }
+
+            try {
+                document.getElementById('retry-payment').innerHTML = 'Creating checkout...';
+                document.getElementById('retry-payment').disabled = true;
+
+                const checkoutData = await apiCall('/payments/checkout/', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        order_id: parseInt(orderId)
+                    })
+                });
+
+                // Redirect to Stripe checkout
+                window.location.href = checkoutData.checkout_url;
+            } catch (error) {
+                console.error('Error creating checkout:', error);
+                displayError('Failed to create checkout session. Please try again.');
+                document.getElementById('retry-payment').innerHTML = 'Retry Payment';
+                document.getElementById('retry-payment').disabled = false;
+            }
+        }
+
+        // Main function to handle page load
+        async function handlePageLoad() {
+            const { orderId } = getOrderInfo();
+
+            if (!orderId) {
+                displayError('Order information not found. Please check your orders page.');
+                return;
+            }
+
+            try {
+                const orderData = await loadOrderDetails(orderId);
+                displayOrderDetails(orderData);
+            } catch (error) {
+                console.error('Error loading order details:', error);
+                displayError('Unable to load order details. Please try again or contact support.');
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', handlePageLoad);
+        document.getElementById('retry-payment').addEventListener('click', retryPayment);
+
+        // Handle messages from parent window (if embedded)
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'PAYMENT_CANCELLED') {
+                const orderData = event.data.order;
+                if (orderData) {
+                    displayOrderDetails(orderData);
+                }
+            }
+        });
+
+        // Alternative: Try to get recent orders if no specific order info
+        async function tryLoadRecentOrder() {
+            try {
+                const orders = await apiCall('/orders/');
+                const recentOrder = orders.orders?.find(o => o.payment_status === null || o.payment_status === 'PENDING');
+                if (recentOrder) {
+                    displayOrderDetails(recentOrder);
+                } else {
+                    displayError('No pending orders found. Please create a new order.');
+                }
+            } catch (error) {
+                console.error('Error loading recent orders:', error);
+                displayError('Unable to load order information.');
+            }
+        }
+
+        // If no order ID found, try to load recent order
+        setTimeout(() => {
+            if (document.getElementById('loading').style.display !== 'none') {
+                const { orderId } = getOrderInfo();
+                if (!orderId) {
+                    tryLoadRecentOrder();
+                }
+            }
+        }, 2000);
+    </script>
+</body>
+</html> 

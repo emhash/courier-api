@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Courier Service</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: scaleIn 0.6s ease-out;
+        }
+
+        .success-icon::after {
+            content: '✓';
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .message {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .order-details {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .order-details h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon"></div>
+        <h1>Payment Successful!</h1>
+        <p class="message">Thank you for your payment. Your courier order has been processed successfully.</p>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <span>Retrieving order details...</span>
+        </div>
+
+        <div id="order-details" class="order-details hidden">
+            <h3>Order Details</h3>
+            <div class="detail-row">
+                <span>Order ID:</span>
+                <span id="order-id">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Description:</span>
+                <span id="order-description">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Address:</span>
+                <span id="order-address">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Status:</span>
+                <span id="order-status">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Amount Paid:</span>
+                <span id="order-amount">-</span>
+            </div>
+        </div>
+
+        <div id="error-message" class="error hidden"></div>
+
+        <div style="margin-top: 30px;">
+            <a href="/api/docs/" class="btn">View API Docs</a>
+            <a href="/admin/" class="btn btn-secondary">Admin Panel</a>
+        </div>
+    </div>
+
+    <script>
+        // Get session ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+
+        // Show success message immediately since we're on the success page
+        function showSuccessWithSessionInfo() {
+            document.getElementById('loading').classList.add('hidden');
+            
+            // Show basic success info
+            const orderDetails = document.getElementById('order-details');
+            orderDetails.innerHTML = `
+                <h3>Payment Confirmed!</h3>
+                <div class="detail-row">
+                    <span>Session ID:</span>
+                    <span>${sessionId || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Payment Status:</span>
+                    <span style="color: #28a745; font-weight: bold;">SUCCEEDED</span>
+                </div>
+                <div class="detail-row">
+                    <span>Transaction:</span>
+                    <span>Completed via Stripe</span>
+                </div>
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                    Your payment has been processed successfully. You will receive an email confirmation shortly.
+                </p>
+            `;
+            orderDetails.classList.remove('hidden');
+        }
+
+        // Main function to handle page load
+        function handlePageLoad() {
+            if (!sessionId) {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error-message').textContent = 'No session ID found in URL.';
+                document.getElementById('error-message').classList.remove('hidden');
+                return;
+            }
+
+            // Show success immediately since Stripe redirected here
+            showSuccessWithSessionInfo();
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', handlePageLoad);
+    </script>
+</body>
+</html> 
